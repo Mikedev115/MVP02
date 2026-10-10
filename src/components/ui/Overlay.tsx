@@ -7,7 +7,7 @@ import { cn } from '@/lib/format'
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
 
 /** จัดการ focus trap, ปุ่ม Esc และการล็อกการเลื่อนหน้าจอด้านหลัง */
-function useOverlay(open: boolean, onClose: () => void) {
+export function useOverlay(open: boolean, onClose: () => void) {
   const ref = useRef<HTMLDivElement>(null)
   const closeRef = useRef(onClose)
   closeRef.current = onClose

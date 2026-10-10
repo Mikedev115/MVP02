@@ -8,10 +8,12 @@ import { MarketingPage } from '@/features/marketing/MarketingPage'
 import { OperationsPage } from '@/features/operations/OperationsPage'
 import { InsightsPage } from '@/features/insights/InsightsPage'
 import { NotFound } from '@/components/layout/NotFound'
+import { SitePage } from '@/features/site/SitePage'
 
 export function App() {
   return (
     <Routes>
+      <Route path="shop" element={<SitePage />} />
       <Route element={<AppShell />}>
         <Route index element={<DashboardPage />} />
         <Route path="bookings" element={<BookingsPage />} />

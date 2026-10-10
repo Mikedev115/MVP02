@@ -41,10 +41,11 @@ export function Avatar({ name, color = '#6B8A64', size = 36 }: { name: string; c
   )
 }
 
-export function Toaster() {
+/** raised: ยกขึ้นบนมือถือเพื่อไม่ทับปุ่มสลับหน้าบ้าน/หลังบ้านที่ลอยอยู่มุมซ้ายล่าง */
+export function Toaster({ raised = false }: { raised?: boolean }) {
   const { toasts, dismissToast } = useUi()
   return (
-    <div className="pointer-events-none fixed bottom-4 left-1/2 z-[60] flex w-full max-w-sm -translate-x-1/2 flex-col gap-2 px-4" aria-live="polite">
+    <div className={cn('pointer-events-none fixed left-1/2 z-[60] flex w-full max-w-sm -translate-x-1/2 flex-col gap-2 px-4', raised ? 'bottom-20 sm:bottom-4' : 'bottom-4')} aria-live="polite">
       {toasts.map((t) => (
         <div
           key={t.id}

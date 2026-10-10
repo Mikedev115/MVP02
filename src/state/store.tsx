@@ -44,7 +44,7 @@ export function reducer(state: AppData, action: Action): AppData {
   }
 }
 
-interface StoreValue {
+export interface StoreValue {
   data: AppData
   customerStats: Map<string, CustomerStats>
   createAppointment: (input: AppointmentInput) => Result<Appointment>

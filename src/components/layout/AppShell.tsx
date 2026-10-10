@@ -6,10 +6,12 @@ import { useUi } from '@/state/ui'
 import { buildAlerts } from '@/lib/metrics'
 import { DEMO_NOW, DEMO_TODAY, fmtDateLong } from '@/lib/date'
 import { cn } from '@/lib/format'
+import { needsFallbackFade } from '@/lib/viewTransition'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/Overlay'
 import { Toaster } from '@/components/ui/Misc'
 import { DateRangePicker } from './DateRangePicker'
+import { ViewSwitch } from './ViewSwitch'
 
 const NAV = [
   { to: '/', label: 'ภาพรวม', icon: LayoutDashboard, end: true },
@@ -93,7 +95,7 @@ export function AppShell() {
   )
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className={cn('flex h-screen overflow-hidden', needsFallbackFade() && 'animate-fade-in')}>
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[70] focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:shadow-pop">
         ข้ามไปยังเนื้อหาหลัก
       </a>
@@ -161,7 +163,7 @@ export function AppShell() {
             </p>
           </div>
           {RANGE_PAGES.includes(pathname) ? (
-            <div className="order-last w-full sm:order-none sm:w-auto">
+            <div className="order-[99] w-full sm:order-none sm:w-auto">
               <DateRangePicker />
             </div>
           ) : (
@@ -169,6 +171,7 @@ export function AppShell() {
               <CalendarDays size={15} className="text-sage-500" /> วันนี้ · {fmtDateLong(DEMO_TODAY).replace('วัน', '')}
             </span>
           )}
+          <ViewSwitch current="admin" className="order-[98] w-full sm:order-none sm:w-auto" />
           <Notifications />
         </header>
 
