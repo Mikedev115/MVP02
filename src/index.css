@@ -1,0 +1,70 @@
+@import '@fontsource/ibm-plex-sans-thai/thai-400.css';
+@import '@fontsource/ibm-plex-sans-thai/thai-500.css';
+@import '@fontsource/ibm-plex-sans-thai/thai-600.css';
+@import '@fontsource/ibm-plex-sans-thai/latin-400.css';
+@import '@fontsource/ibm-plex-sans-thai/latin-500.css';
+@import '@fontsource/ibm-plex-sans-thai/latin-600.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-canvas text-ink antialiased;
+    font-family: 'IBM Plex Sans Thai', system-ui, sans-serif;
+    line-height: 1.6;
+  }
+  h1, h2, h3 {
+    line-height: 1.35;
+  }
+  :focus-visible {
+    outline: 2px solid #85a07e;
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: #c8d5c2;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.18s ease-out;
+  }
+  .animate-rise {
+    animation: rise 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .animate-slide-in {
+    animation: slide-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #d6c9ac transparent;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ให้ recharts ไม่มีกรอบ focus ที่ดูรก */
+.recharts-wrapper, .recharts-surface { outline: none; }
