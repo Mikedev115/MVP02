@@ -2,6 +2,7 @@ import { Info, Wand2 } from 'lucide-react'
 import { SOURCE_LABEL } from '@/data/catalog'
 import type { AcquisitionSource } from '@/types'
 import { Field, Input, Select, Textarea } from '@/components/ui/Form'
+import { useLang } from '@/i18n'
 import { cn } from '@/lib/format'
 import { formatPhone, type BookingDetails, type DetailErrors, type DetailField } from '../validation'
 
@@ -19,24 +20,28 @@ const SOURCES = (Object.keys(SOURCE_LABEL) as AcquisitionSource[]).filter((s) =>
 const input = '!text-base sm:!text-sm'
 
 export function DetailsStep({ details, errors, shown, onChange, onTouch, onFillSample }: Props) {
-  const err = (f: DetailField) => (shown.has(f) ? errors[f] : undefined)
+  const { t } = useLang()
+  const err = (f: DetailField) => {
+    const key = shown.has(f) ? errors[f] : undefined
+    return key ? t(key) : undefined
+  }
 
   return (
     <div>
-      <h3 className="font-serifth text-xl text-bark-900">ข้อมูลสำหรับติดต่อ</h3>
+      <h3 className="font-serifth text-xl text-bark-900">{t('details.title')}</h3>
 
       <div className="mt-3 flex gap-2.5 rounded-xl border border-amber2-100 bg-amber2-50 p-3 text-sm text-amber2-700">
         <Info size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
         <p>
-          ฟอร์มนี้เป็นการจำลอง ไม่ส่งข้อมูลไปที่ใด กรุณาไม่ใช้ข้อมูลจริงของคุณ
+          {t('details.notice')}
           <button type="button" onClick={onFillSample} className="ml-1.5 inline-flex items-center gap-1 font-medium underline underline-offset-2 hover:text-amber2-600">
-            <Wand2 size={13} aria-hidden="true" /> ใช้ข้อมูลตัวอย่าง
+            <Wand2 size={13} aria-hidden="true" /> {t('details.fillSample')}
           </button>
         </p>
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <Field label="ชื่อที่ใช้เรียก" required error={err('name')}>
+        <Field label={t('details.name')} required error={err('name')}>
           {(id, d) => (
             <Input
               id={id}
@@ -45,13 +50,13 @@ export function DetailsStep({ details, errors, shown, onChange, onTouch, onFillS
               className={input}
               value={details.name}
               invalid={!!err('name')}
-              placeholder="เช่น สมศรี ตัวอย่าง"
+              placeholder={t('details.namePh')}
               onChange={(e) => onChange({ name: e.target.value })}
               onBlur={() => onTouch('name')}
             />
           )}
         </Field>
-        <Field label="เบอร์โทรศัพท์" required error={err('phone')} hint="เบอร์มือถือ 10 หลัก">
+        <Field label={t('details.phone')} required error={err('phone')} hint={t('details.phoneHint')}>
           {(id, d) => (
             <Input
               id={id}
@@ -67,7 +72,7 @@ export function DetailsStep({ details, errors, shown, onChange, onTouch, onFillS
             />
           )}
         </Field>
-        <Field label="LINE ID (ไม่บังคับ)" error={err('lineId')}>
+        <Field label={t('details.line')} error={err('lineId')}>
           {(id, d) => (
             <Input
               id={id}
@@ -76,25 +81,25 @@ export function DetailsStep({ details, errors, shown, onChange, onTouch, onFillS
               className={input}
               value={details.lineId}
               invalid={!!err('lineId')}
-              placeholder="เช่น @sample-id"
+              placeholder={t('details.linePh')}
               onChange={(e) => onChange({ lineId: e.target.value })}
               onBlur={() => onTouch('lineId')}
             />
           )}
         </Field>
-        <Field label="รู้จักร้านจากช่องทางไหน (ไม่บังคับ)">
+        <Field label={t('details.source')}>
           {(id) => (
             <Select id={id} className={input} value={details.source} onChange={(e) => onChange({ source: e.target.value as AcquisitionSource })}>
               {SOURCES.map((s) => (
                 <option key={s} value={s}>
-                  {s === 'other' ? 'ไม่ระบุ / อื่น ๆ' : SOURCE_LABEL[s]}
+                  {s === 'other' ? t('details.sourceOther') : s === 'referral' ? t('source.referral') : SOURCE_LABEL[s]}
                 </option>
               ))}
             </Select>
           )}
         </Field>
         <div className="sm:col-span-2">
-          <Field label="ความต้องการเพิ่มเติม (ไม่บังคับ)" error={err('note')} hint={`${details.note.length}/200`}>
+          <Field label={t('details.note')} error={err('note')} hint={`${details.note.length}/200`}>
             {(id, d) => (
               <Textarea
                 id={id}
@@ -102,7 +107,7 @@ export function DetailsStep({ details, errors, shown, onChange, onTouch, onFillS
                 rows={2}
                 className={cn(input, 'min-h-[4.5rem]')}
                 value={details.note}
-                placeholder="เช่น ชอบแรงกดเบา แพ้กลิ่นบางชนิด"
+                placeholder={t('details.notePh')}
                 onChange={(e) => onChange({ note: e.target.value })}
                 onBlur={() => onTouch('note')}
               />
@@ -123,7 +128,7 @@ export function DetailsStep({ details, errors, shown, onChange, onTouch, onFillS
               onTouch('agree')
             }}
           />
-          <span className="text-bark-700">ฉันเข้าใจว่านี่คือการจองเพื่อสาธิต ข้อมูลไม่ถูกส่งไปยังร้านจริงและจะหายเมื่อรีเฟรชหน้า</span>
+          <span className="text-bark-700">{t('details.agree')}</span>
         </label>
         {err('agree') && (
           <p role="alert" className="mt-1.5 text-xs text-clay-600">

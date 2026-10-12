@@ -21,16 +21,18 @@ export function slotsFor(appointments: Appointment[], serviceId: string, date: I
   return starts.filter((t) => toMin(t) >= earliest)
 }
 
+export type SlotPeriod = 'morning' | 'afternoon' | 'evening'
+
 export interface SlotGroup {
-  label: string
+  period: SlotPeriod
   slots: HHmm[]
 }
 
 export function groupSlots(slots: HHmm[]): SlotGroup[] {
   const groups: SlotGroup[] = [
-    { label: 'ช่วงเช้า', slots: slots.filter((t) => toMin(t) < 12 * 60) },
-    { label: 'ช่วงบ่าย', slots: slots.filter((t) => toMin(t) >= 12 * 60 && toMin(t) < 17 * 60) },
-    { label: 'ช่วงเย็น', slots: slots.filter((t) => toMin(t) >= 17 * 60) },
+    { period: 'morning', slots: slots.filter((t) => toMin(t) < 12 * 60) },
+    { period: 'afternoon', slots: slots.filter((t) => toMin(t) >= 12 * 60 && toMin(t) < 17 * 60) },
+    { period: 'evening', slots: slots.filter((t) => toMin(t) >= 17 * 60) },
   ]
   return groups.filter((g) => g.slots.length > 0)
 }

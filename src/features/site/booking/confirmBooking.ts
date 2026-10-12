@@ -1,8 +1,12 @@
-import type { StoreValue, Result } from '@/state/store'
+import type { StoreValue } from '@/state/store'
 import { autoAssign } from '@/lib/conflicts'
 import { digitsOnly } from './validation'
 import type { BookingConfirmation, BookingState } from './bookingState'
 import { describeSelection } from './selection'
+
+/** ข้อผิดพลาดแบบมีรหัส เพื่อให้หน้าจอแปลข้อความตามภาษา (store = ข้อความจากระบบหลังบ้าน แสดงตามที่ได้) */
+export type ConfirmError = { code: 'incomplete' | 'full' | 'customer' } | { code: 'store'; message: string }
+export type ConfirmResult = { ok: true; value: BookingConfirmation } | { ok: false; error: ConfirmError }
 
 /**
  * สร้างการจองสถานะ "รอยืนยัน" ใน store เดียวกับระบบหลังบ้าน
@@ -11,10 +15,10 @@ import { describeSelection } from './selection'
 export function confirmBooking(
   store: Pick<StoreValue, 'data' | 'addCustomer' | 'createAppointment'>,
   state: BookingState,
-): Result<BookingConfirmation> {
+): ConfirmResult {
   const { service, promo, price, end } = describeSelection(state)
   const { date, start, details } = state
-  if (!service || !date || !start || !end) return { ok: false, error: 'ข้อมูลการจองยังไม่ครบ กรุณาตรวจสอบอีกครั้ง' }
+  if (!service || !date || !start || !end) return { ok: false, error: { code: 'incomplete' } }
 
   const phone = digitsOnly(details.phone)
   const existing = store.data.customers.find((c) => digitsOnly(c.phone) === phone)
@@ -22,7 +26,7 @@ export function confirmBooking(
 
   const draft = { customerId, serviceId: service.id, date, start, end, status: 'pending' as const }
   const assigned = autoAssign(store.data.appointments, draft)
-  if (!assigned) return { ok: false, error: 'ขออภัย ช่วงเวลานี้เพิ่งเต็ม กรุณาเลือกเวลาอื่น' }
+  if (!assigned) return { ok: false, error: { code: 'full' } }
 
   const name = details.name.trim()
   const customer =
@@ -38,7 +42,7 @@ export function confirmBooking(
       })
       return created.ok ? created.value : undefined
     })()
-  if (!customer) return { ok: false, error: 'ไม่สามารถบันทึกข้อมูลลูกค้าได้ กรุณาลองใหม่' }
+  if (!customer) return { ok: false, error: { code: 'customer' } }
 
   const note = ['จองผ่านเว็บไซต์ลูกค้า (เดโม)', promo && `โปรโมชัน: ${promo.title}`, details.note.trim()].filter(Boolean).join(' · ')
   const result = store.createAppointment({
@@ -53,20 +57,20 @@ export function confirmBooking(
     price,
     note,
   })
-  if (!result.ok) return { ok: false, error: result.error }
+  if (!result.ok) return { ok: false, error: { code: 'store', message: result.error } }
 
   return {
     ok: true,
     value: {
       appointmentId: result.value.id,
-      serviceName: service.name,
+      serviceId: service.id,
       date,
       start,
       end,
       price,
       customerName: customer.name,
       phone: details.phone,
-      promoTitle: promo?.title,
+      promoId: promo?.id,
     },
   }
 }

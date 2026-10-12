@@ -1,3 +1,4 @@
+import type { Key } from '@/i18n'
 import type { AcquisitionSource } from '@/types'
 
 export interface BookingDetails {
@@ -10,19 +11,20 @@ export interface BookingDetails {
 }
 
 export type DetailField = 'name' | 'phone' | 'lineId' | 'note' | 'agree'
-export type DetailErrors = Partial<Record<DetailField, string>>
+/** ค่าเป็นคีย์ของพจนานุกรม (err.*) ให้หน้าจอแปลตามภาษาที่เลือก */
+export type DetailErrors = Partial<Record<DetailField, Key>>
 
 export const EMPTY_DETAILS: BookingDetails = { name: '', phone: '', lineId: '', source: 'other', note: '', agree: false }
 
 /** ข้อมูลตัวอย่างสำหรับกรอกอัตโนมัติ — เป็นข้อมูลสมมติทั้งหมด */
-export const SAMPLE_DETAILS: BookingDetails = {
-  name: 'สมศรี ตัวอย่าง',
+export const sampleDetails = (name: string): BookingDetails => ({
+  name,
   phone: '081-234-5678',
   lineId: '',
   source: 'other',
   note: '',
   agree: true,
-}
+})
 
 export const digitsOnly = (v: string) => v.replace(/\D/g, '')
 
@@ -41,19 +43,19 @@ const LINE_ID = /^@?[A-Za-z0-9._-]{4,20}$/
 export function validateDetails(d: BookingDetails): DetailErrors {
   const errors: DetailErrors = {}
   const name = d.name.trim()
-  if (!name) errors.name = 'กรุณากรอกชื่อที่ใช้เรียก'
-  else if (name.length < 2) errors.name = 'ชื่อสั้นเกินไป กรุณากรอกอย่างน้อย 2 ตัวอักษร'
-  else if (name.length > 60) errors.name = 'ชื่อยาวเกินไป (ไม่เกิน 60 ตัวอักษร)'
-  else if (/^[\d\s\-().]+$/.test(name)) errors.name = 'กรุณากรอกชื่อเป็นตัวอักษร'
+  if (!name) errors.name = 'err.name.required'
+  else if (name.length < 2) errors.name = 'err.name.short'
+  else if (name.length > 60) errors.name = 'err.name.long'
+  else if (/^[\d\s\-().]+$/.test(name)) errors.name = 'err.name.digits'
 
-  if (!digitsOnly(d.phone)) errors.phone = 'กรุณากรอกเบอร์โทรศัพท์'
-  else if (!isThaiMobile(d.phone)) errors.phone = 'กรอกเบอร์มือถือ 10 หลักที่ขึ้นต้นด้วย 06, 08 หรือ 09 เช่น 081-234-5678'
+  if (!digitsOnly(d.phone)) errors.phone = 'err.phone.required'
+  else if (!isThaiMobile(d.phone)) errors.phone = 'err.phone.invalid'
 
   const line = d.lineId.trim()
-  if (line && !LINE_ID.test(line)) errors.lineId = 'LINE ID ใช้ได้เฉพาะตัวอักษรอังกฤษ ตัวเลข . _ - ความยาว 4–20 ตัว'
+  if (line && !LINE_ID.test(line)) errors.lineId = 'err.line.invalid'
 
-  if (d.note.length > 200) errors.note = 'หมายเหตุยาวเกินไป (ไม่เกิน 200 ตัวอักษร)'
-  if (!d.agree) errors.agree = 'กรุณากดรับทราบว่าเป็นการจองเพื่อสาธิต'
+  if (d.note.length > 200) errors.note = 'err.note.long'
+  if (!d.agree) errors.agree = 'err.agree.required'
   return errors
 }
 

@@ -1,25 +1,26 @@
+import type { Key } from '@/i18n'
 import type { HHmm, ISODate } from '@/types'
 import { EMPTY_DETAILS, type BookingDetails } from './validation'
 
 export type BookingStep = 'service' | 'time' | 'details' | 'review' | 'done'
 
-export const STEPS: { id: Exclude<BookingStep, 'done'>; label: string }[] = [
-  { id: 'service', label: 'บริการ' },
-  { id: 'time', label: 'วันและเวลา' },
-  { id: 'details', label: 'ข้อมูลติดต่อ' },
-  { id: 'review', label: 'ตรวจสอบ' },
+export const STEPS: { id: Exclude<BookingStep, 'done'>; label: Key }[] = [
+  { id: 'service', label: 'booking.step.service' },
+  { id: 'time', label: 'booking.step.time' },
+  { id: 'details', label: 'booking.step.details' },
+  { id: 'review', label: 'booking.step.review' },
 ]
 
 export interface BookingConfirmation {
   appointmentId: string
-  serviceName: string
+  serviceId: string
   date: ISODate
   start: HHmm
   end: HHmm
   price: number
   customerName: string
   phone: string
-  promoTitle?: string
+  promoId?: string
 }
 
 export interface BookingState {

@@ -1,30 +1,32 @@
 import type { ReactNode } from 'react'
 import { Clock, Map, MapPin, MessageCircle, Phone, Share2 } from 'lucide-react'
+import { useLang } from '@/i18n'
+import { SHOP_CLOSE, SHOP_OPEN } from '@/lib/date'
 import { useUi } from '@/state/ui'
 import { useBooking } from '../booking/BookingProvider'
-import { CONTACT } from '../content/site'
 import { bodyText, container, displayTitle, eyebrow, sectionY } from '../tokens'
 import { Reveal } from '../ui/Reveal'
 
 export function Contact() {
   const { toast } = useUi()
   const { openBooking } = useBooking()
-  const placeholder = (what: string) => toast(`${what} เป็นข้อมูลตัวอย่าง ร้านจริงจะใส่ลิงก์หรือข้อมูลที่ถูกต้องที่นี่`, 'info')
+  const { t } = useLang()
+  const placeholder = (what: string) => toast(t('contact.placeholderToast', { what }), 'info')
 
   return (
     <section id="contact" className="scroll-mt-16 bg-ivory">
       <div className={`${container} ${sectionY} grid gap-14 lg:grid-cols-[1fr_1.1fr] lg:gap-20`}>
         <Reveal>
-          <p className={eyebrow}>ติดต่อเรา</p>
-          <h2 className={`${displayTitle} mt-4`}>แวะมาพักกับเรา</h2>
-          <p className={`${bodyText} mt-4 max-w-md`}>ข้อมูลด้านล่างเป็นตัวอย่าง (placeholder) สำหรับการสาธิตเท่านั้น</p>
+          <p className={eyebrow}>{t('contact.eyebrow')}</p>
+          <h2 className={`${displayTitle} mt-4`}>{t('contact.title')}</h2>
+          <p className={`${bodyText} mt-4 max-w-md`}>{t('contact.lead')}</p>
 
           <ul className="mt-9 divide-y divide-stone-200 border-y border-stone-200">
-            <Row icon={<MapPin size={18} />} label="ที่ตั้งร้าน" value={CONTACT.address} />
-            <Row icon={<Clock size={18} />} label="เวลาทำการ" value={CONTACT.hours} />
-            <Row icon={<Phone size={18} />} label="โทรศัพท์" value={CONTACT.phone} onClick={() => placeholder('เบอร์โทรศัพท์')} />
-            <Row icon={<MessageCircle size={18} />} label="LINE" value={CONTACT.line} onClick={() => placeholder('LINE')} />
-            <Row icon={<Share2 size={18} />} label="Facebook" value={CONTACT.facebook} onClick={() => placeholder('Facebook')} />
+            <Row icon={<MapPin size={18} />} label={t('contact.address')} value={t('contact.addressValue')} />
+            <Row icon={<Clock size={18} />} label={t('contact.hours')} value={t('common.hoursDaily', { open: SHOP_OPEN, close: SHOP_CLOSE })} />
+            <Row icon={<Phone size={18} />} label={t('contact.phone')} value={t('contact.phoneValue')} onClick={() => placeholder(t('contact.whatPhone'))} />
+            <Row icon={<MessageCircle size={18} />} label="LINE" value={t('contact.lineValue')} onClick={() => placeholder('LINE')} />
+            <Row icon={<Share2 size={18} />} label="Facebook" value={t('contact.facebookValue')} onClick={() => placeholder('Facebook')} />
           </ul>
         </Reveal>
 
@@ -32,12 +34,12 @@ export function Contact() {
           <button
             type="button"
             onClick={() => placeholder('Google Maps')}
-            aria-label={`${CONTACT.maps} — ตัวอย่างแผนที่`}
+            aria-label={t('contact.mapAria', { maps: t('contact.mapsValue') })}
             className="group relative block aspect-[4/3] w-full overflow-hidden rounded-[2rem] border border-stone-200 bg-cream text-left"
           >
             <MapPlaceholder />
             <span className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm text-bark-800 shadow-card transition-transform duration-300 group-hover:-translate-y-0.5">
-              <Map size={15} aria-hidden="true" /> {CONTACT.maps}
+              <Map size={15} aria-hidden="true" /> {t('contact.mapsValue')}
             </span>
           </button>
         </Reveal>
@@ -87,18 +89,19 @@ function MapPlaceholder() {
 }
 
 function FinalCta({ onBook }: { onBook: () => void }) {
+  const { t } = useLang()
   return (
     <div className="bg-olive-900 py-20 text-center text-white sm:py-24">
       <Reveal className={container}>
         <p className="text-xs uppercase tracking-[0.3em] text-olive-300">Book your rest</p>
-        <h2 className="mx-auto mt-5 max-w-2xl font-serifth text-3xl font-normal leading-[1.5] sm:text-4xl sm:leading-[1.45] lg:text-5xl">พร้อมให้ตัวเองได้พักหรือยัง</h2>
-        <p className="mx-auto mt-5 max-w-md text-[15px] leading-relaxed text-olive-100/80">เลือกบริการ เลือกเวลาว่าง แล้วจองได้ในไม่กี่ขั้นตอน (ระบบจองนี้เป็นเดโม ไม่ส่งถึงร้านจริง)</p>
+        <h2 className="mx-auto mt-5 max-w-2xl font-serifth text-3xl font-normal leading-[1.5] sm:text-4xl sm:leading-[1.45] lg:text-5xl">{t('cta.title')}</h2>
+        <p className="mx-auto mt-5 max-w-md text-[15px] leading-relaxed text-olive-100/80">{t('cta.text')}</p>
         <button
           type="button"
           onClick={onBook}
           className="mt-9 inline-flex h-14 items-center rounded-full bg-ivory px-9 text-base font-medium text-bark-900 shadow-md transition-all duration-300 hover:bg-white hover:shadow-lg"
         >
-          จองคิวของคุณ
+          {t('common.bookYours')}
         </button>
       </Reveal>
     </div>

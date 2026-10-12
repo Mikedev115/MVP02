@@ -1,4 +1,5 @@
 import type { DateRange, HHmm, ISODate } from '@/types'
+import type { Lang } from '@/i18n/types'
 
 /** วันเดโม — ข้อมูลทั้งหมดอ้างอิงวันนี้และเวลานี้เพื่อให้ตัวเลขสอดคล้องกัน */
 export const DEMO_TODAY: ISODate = '2026-10-10'
@@ -113,20 +114,26 @@ export function fmtDate(d: ISODate): string {
   return `${date.getDate()} ${TH_MONTHS_SHORT[date.getMonth()]} ${date.getFullYear() + 543}`
 }
 
-/** 10 ต.ค. */
-export function fmtDayMonth(d: ISODate): string {
+const EN_MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const EN_MONTHS_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const EN_DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const EN_DAYS_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+/** 10 ต.ค. / 10 Oct */
+export function fmtDayMonth(d: ISODate, lang: Lang = 'th'): string {
   const date = parseDate(d)
-  return `${date.getDate()} ${TH_MONTHS_SHORT[date.getMonth()]}`
+  return `${date.getDate()} ${(lang === 'en' ? EN_MONTHS_SHORT : TH_MONTHS_SHORT)[date.getMonth()]}`
 }
 
-/** วันเสาร์ที่ 10 ตุลาคม 2569 */
-export function fmtDateLong(d: ISODate): string {
+/** วันเสาร์ที่ 10 ตุลาคม 2569 / Saturday, 10 October 2026 */
+export function fmtDateLong(d: ISODate, lang: Lang = 'th'): string {
   const date = parseDate(d)
+  if (lang === 'en') return `${EN_DAYS_FULL[date.getDay()]}, ${date.getDate()} ${EN_MONTHS_FULL[date.getMonth()]} ${date.getFullYear()}`
   return `${TH_DAYS_FULL[date.getDay()]}ที่ ${date.getDate()} ${TH_MONTHS_FULL[date.getMonth()]} ${date.getFullYear() + 543}`
 }
 
-export function fmtWeekday(d: ISODate): string {
-  return TH_DAYS_SHORT[dayOfWeek(d)]
+export function fmtWeekday(d: ISODate, lang: Lang = 'th'): string {
+  return (lang === 'en' ? EN_DAYS_SHORT : TH_DAYS_SHORT)[dayOfWeek(d)]
 }
 
 /** ต.ค. 69 */
@@ -144,6 +151,6 @@ export function fmtRange(r: DateRange): string {
   return r.from === r.to ? fmtDate(r.from) : `${fmtDate(r.from)} – ${fmtDate(r.to)}`
 }
 
-export function fmtTimeRange(start: HHmm, end: HHmm): string {
-  return `${start}–${end} น.`
+export function fmtTimeRange(start: HHmm, end: HHmm, lang: Lang = 'th'): string {
+  return lang === 'en' ? `${start}–${end}` : `${start}–${end} น.`
 }

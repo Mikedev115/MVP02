@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { CalendarX } from 'lucide-react'
+import { useLang } from '@/i18n'
 import { useStore } from '@/state/store'
 import { DEMO_TODAY, fmtDateLong, fmtDayMonth, fmtWeekday, parseDate } from '@/lib/date'
 import { cn } from '@/lib/format'
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function TimeStep({ state, onDate, onTime }: Props) {
+  const { t, lang } = useLang()
   const { data } = useStore()
   const { serviceId, date, start } = state
 
@@ -47,18 +49,18 @@ export function TimeStep({ state, onDate, onTime }: Props) {
     return (
       <div className="flex flex-col items-center py-14 text-center">
         <CalendarX className="text-bark-300" size={36} strokeWidth={1.25} />
-        <p className="mt-3 font-medium text-bark-800">ยังไม่มีเวลาว่างใน 14 วันข้างหน้า</p>
-        <p className="mt-1 max-w-xs text-sm text-bark-500">ลองเลือกบริการหรือระยะเวลาอื่น เวลาว่างของแต่ละบริการอาจต่างกัน</p>
+        <p className="mt-3 font-medium text-bark-800">{t('when.emptyTitle')}</p>
+        <p className="mt-1 max-w-xs text-sm text-bark-500">{t('when.emptyText')}</p>
       </div>
     )
   }
 
   return (
     <div>
-      <h3 className="font-serifth text-xl text-bark-900">เลือกวันและเวลา</h3>
-      <p className="mt-1 text-sm text-bark-500">เวลาว่างเป็นข้อมูลจำลองจากระบบเดโม จองล่วงหน้าได้ 14 วัน</p>
+      <h3 className="font-serifth text-xl text-bark-900">{t('when.title')}</h3>
+      <p className="mt-1 text-sm text-bark-500">{t('when.sub')}</p>
 
-      <div role="radiogroup" aria-label="เลือกวันที่" className="scroll-thin -mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-2">
+      <div role="radiogroup" aria-label={t('when.dateAria')} className="scroll-thin -mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-2">
         {availability.map(({ date: d, slots: s }) => {
           const full = s.length === 0
           const active = d === date
@@ -68,7 +70,7 @@ export function TimeStep({ state, onDate, onTime }: Props) {
               type="button"
               role="radio"
               aria-checked={active}
-              aria-label={`${fmtDateLong(d)}${full ? ' เต็ม' : ''}`}
+              aria-label={full ? t('when.fullAria', { date: fmtDateLong(d, lang) }) : fmtDateLong(d, lang)}
               disabled={full}
               onClick={() => onDate(d)}
               className={cn(
@@ -77,9 +79,9 @@ export function TimeStep({ state, onDate, onTime }: Props) {
                 full && 'cursor-not-allowed opacity-45 hover:border-stone-200',
               )}
             >
-              <span className={cn('text-xs', active ? 'text-olive-100' : 'text-bark-500')}>{d === DEMO_TODAY ? 'วันนี้' : fmtWeekday(d)}</span>
+              <span className={cn('text-xs', active ? 'text-olive-100' : 'text-bark-500')}>{d === DEMO_TODAY ? t('when.today') : fmtWeekday(d, lang)}</span>
               <span className="font-serifth text-2xl leading-tight">{parseDate(d).getDate()}</span>
-              <span className={cn('text-[11px]', active ? 'text-olive-100' : 'text-bark-400')}>{full ? 'เต็ม' : fmtDayMonth(d).split(' ')[1]}</span>
+              <span className={cn('text-[11px]', active ? 'text-olive-100' : 'text-bark-400')}>{full ? t('when.full') : fmtDayMonth(d, lang).split(' ')[1]}</span>
             </button>
           )
         })}
@@ -87,28 +89,28 @@ export function TimeStep({ state, onDate, onTime }: Props) {
 
       {date && (
         <div className="mt-6">
-          <p className="text-sm font-medium text-bark-800">{fmtDateLong(date)}</p>
+          <p className="text-sm font-medium text-bark-800">{fmtDateLong(date, lang)}</p>
           {groups.length === 0 ? (
-            <p className="mt-3 rounded-xl bg-cream px-4 py-3 text-sm text-bark-600">วันนี้เวลาว่างเต็มแล้ว กรุณาเลือกวันอื่น</p>
+            <p className="mt-3 rounded-xl bg-cream px-4 py-3 text-sm text-bark-600">{t('when.dayFull')}</p>
           ) : (
             <div className="mt-3 space-y-5">
               {groups.map((g) => (
-                <div key={g.label}>
-                  <p className="mb-2 text-xs uppercase tracking-wide text-bark-400">{g.label}</p>
-                  <div role="radiogroup" aria-label={`เวลา${g.label}`} className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                    {g.slots.map((t) => (
+                <div key={g.period}>
+                  <p className="mb-2 text-xs uppercase tracking-wide text-bark-400">{t(`when.${g.period}`)}</p>
+                  <div role="radiogroup" aria-label={t('when.periodAria', { period: t(`when.${g.period}`) })} className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    {g.slots.map((slot) => (
                       <button
-                        key={t}
+                        key={slot}
                         type="button"
                         role="radio"
-                        aria-checked={t === start}
-                        onClick={() => onTime(t)}
+                        aria-checked={slot === start}
+                        onClick={() => onTime(slot)}
                         className={cn(
                           'h-11 rounded-xl border text-sm font-medium transition-all duration-300',
-                          t === start ? 'border-olive-600 bg-olive-600 text-white shadow-sm' : 'border-stone-200 bg-white text-bark-800 hover:border-olive-300',
+                          slot === start ? 'border-olive-600 bg-olive-600 text-white shadow-sm' : 'border-stone-200 bg-white text-bark-800 hover:border-olive-300',
                         )}
                       >
-                        {t}
+                        {slot}
                       </button>
                     ))}
                   </div>

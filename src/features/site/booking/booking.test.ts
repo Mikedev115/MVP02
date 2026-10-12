@@ -70,6 +70,6 @@ describe('slotsFor', () => {
     const slots = slotsFor(appointments, 'sv-ritual120', addDays(DEMO_TODAY, 3))
     expect(slots.length).toBeGreaterThan(0)
     expect(toMin(slots[slots.length - 1]) + 120).toBeLessThanOrEqual(22 * 60)
-    expect(groupSlots(['10:00', '13:00', '18:30']).map((g) => g.label)).toEqual(['ช่วงเช้า', 'ช่วงบ่าย', 'ช่วงเย็น'])
+    expect(groupSlots(['10:00', '13:00', '18:30']).map((g) => g.period)).toEqual(['morning', 'afternoon', 'evening'])
   })
 })

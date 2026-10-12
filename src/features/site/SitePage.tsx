@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Toaster } from '@/components/ui/Misc'
+import { useDocumentLang, useLang } from '@/i18n'
 import { cn } from '@/lib/format'
 import { needsFallbackFade } from '@/lib/viewTransition'
 import { ViewSwitch } from '@/components/layout/ViewSwitch'
@@ -17,20 +18,27 @@ import { WhyUs } from './sections/WhyUs'
 
 /** เว็บไซต์สำหรับลูกค้า (หน้าบ้าน) — ใช้ข้อมูลและ store เดียวกับระบบหลังบ้าน */
 export function SitePage() {
+  const { lang, t } = useLang()
+  useDocumentLang(lang)
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [])
+
+  const title = t('site.title')
   useEffect(() => {
     const prev = document.title
-    document.title = 'Nu Dee Spa — จองคิวสระผมและหัวสปา (เดโม)'
-    window.scrollTo({ top: 0, behavior: 'instant' })
+    document.title = title
     return () => {
       document.title = prev
     }
-  }, [])
+  }, [title])
 
   return (
     <BookingProvider>
       <div className={cn('bg-ivory font-sans text-bark-900', needsFallbackFade() && 'animate-fade-in')}>
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[70] focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:shadow-pop">
-          ข้ามไปยังเนื้อหาหลัก
+          {t('site.skip')}
         </a>
         <SiteHeader />
         <main id="main-content" tabIndex={-1}>

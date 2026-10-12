@@ -2,14 +2,16 @@ import { useEffect, useMemo, useRef, useState, type Dispatch } from 'react'
 import { createPortal } from 'react-dom'
 import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react'
 import { useOverlay } from '@/components/ui/Overlay'
+import { useLang, type Key } from '@/i18n'
 import { useStore } from '@/state/store'
-import { fmtDateLong } from '@/lib/date'
+import { fmtDateLong, fmtTimeRange } from '@/lib/date'
 import { cn, fmtTHB } from '@/lib/format'
+import { serviceText } from '../content/treatments'
 import { BRAND } from '../tokens'
 import { STEPS, type BookingAction, type BookingState } from './bookingState'
-import { confirmBooking } from './confirmBooking'
+import { confirmBooking, type ConfirmError } from './confirmBooking'
 import { describeSelection } from './selection'
-import { SAMPLE_DETAILS, hasErrors, validateDetails, type DetailField } from './validation'
+import { hasErrors, sampleDetails, validateDetails, type DetailField } from './validation'
 import { DetailsStep } from './steps/DetailsStep'
 import { ReviewStep } from './steps/ReviewStep'
 import { ServiceStep } from './steps/ServiceStep'
@@ -27,10 +29,11 @@ interface Props {
 export function BookingDialog({ open, state, dispatch, onClose, onOpenAdmin }: Props) {
   const ref = useOverlay(open, onClose)
   const store = useStore()
+  const { t, l, lang } = useLang()
   const bodyRef = useRef<HTMLDivElement>(null)
   const [touched, setTouched] = useState<Set<DetailField>>(new Set())
   const [attempted, setAttempted] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ConfirmError | null>(null)
 
   const { step } = state
   const sel = describeSelection(state)
@@ -87,7 +90,8 @@ export function BookingDialog({ open, state, dispatch, onClose, onOpenAdmin }: P
     if (stepIndex > 0) go(STEPS[stepIndex - 1].id)
   }
 
-  const nextLabel = step === 'review' ? 'ยืนยันการจอง (เดโม)' : step === 'details' ? 'ตรวจสอบรายละเอียด' : 'ต่อไป'
+  const nextLabel = step === 'review' ? t('booking.confirm') : step === 'details' ? t('booking.toReview') : t('booking.next')
+  const errorText = error ? (error.code === 'store' ? error.message : t(`booking.err.${error.code}` as Key)) : null
   const done = step === 'done' && state.confirmation
 
   return createPortal(
@@ -97,15 +101,15 @@ export function BookingDialog({ open, state, dispatch, onClose, onOpenAdmin }: P
         ref={ref}
         role="dialog"
         aria-modal="true"
-        aria-label="จองคิว"
+        aria-label={t('booking.dialog')}
         className="relative flex h-full w-full animate-rise flex-col overflow-hidden bg-ivory shadow-pop sm:h-auto sm:max-h-[90vh] sm:max-w-4xl sm:rounded-3xl"
       >
         <header className="flex items-center justify-between gap-3 border-b border-stone-200 px-5 py-3.5 sm:px-7">
           <div className="min-w-0">
             <p className="font-display text-lg leading-none text-bark-900">{BRAND.latin}</p>
-            <p className="mt-1 text-xs text-bark-500">จองคิวออนไลน์ · เดโม ไม่ส่งถึงร้านจริง</p>
+            <p className="mt-1 text-xs text-bark-500">{t('booking.sub')}</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="ปิดหน้าต่างจองคิว" className="rounded-full p-2 text-bark-600 transition-colors hover:bg-stone-100">
+          <button type="button" onClick={onClose} aria-label={t('booking.close')} className="rounded-full p-2 text-bark-600 transition-colors hover:bg-stone-100">
             <X size={20} />
           </button>
         </header>
@@ -130,12 +134,12 @@ export function BookingDialog({ open, state, dispatch, onClose, onOpenAdmin }: P
                 onChange={(patch) => dispatch({ type: 'details', patch })}
                 onTouch={(f) => setTouched((t) => new Set(t).add(f))}
                 onFillSample={() => {
-                  dispatch({ type: 'details', patch: SAMPLE_DETAILS })
+                  dispatch({ type: 'details', patch: sampleDetails(t('details.sampleName')) })
                   setAttempted(false)
                 }}
               />
             )}
-            {step === 'review' && <ReviewStep state={state} error={error} onEdit={go} />}
+            {step === 'review' && <ReviewStep state={state} error={errorText} onEdit={go} />}
             {done && (
               <SuccessStep
                 confirmation={state.confirmation!}
@@ -147,8 +151,8 @@ export function BookingDialog({ open, state, dispatch, onClose, onOpenAdmin }: P
           </div>
 
           {!done && (
-            <aside aria-label="สรุปการจอง" className="hidden w-64 shrink-0 border-l border-stone-200 bg-cream/50 p-6 md:block">
-              <p className="text-xs uppercase tracking-[0.2em] text-bark-400">สรุปการจอง</p>
+            <aside aria-label={t('booking.summary')} className="hidden w-64 shrink-0 border-l border-stone-200 bg-cream/50 p-6 md:block">
+              <p className="text-xs uppercase tracking-[0.2em] text-bark-400">{t('booking.summary')}</p>
               <Summary state={state} />
             </aside>
           )}
@@ -157,8 +161,8 @@ export function BookingDialog({ open, state, dispatch, onClose, onOpenAdmin }: P
         {!done && (
           <footer className="border-t border-stone-200 bg-white/70 px-5 py-3 sm:px-7">
             <p className="mb-2 truncate text-xs text-bark-500 md:hidden" aria-hidden="true">
-              {sel.service ? `${sel.service.name} · ${fmtTHB(sel.price)}` : 'ยังไม่ได้เลือกบริการ'}
-              {state.date && state.start ? ` · ${state.start} น.` : ''}
+              {sel.service ? `${l(serviceText(sel.service).name)} · ${fmtTHB(sel.price)}` : t('booking.noService')}
+              {state.date && state.start ? ` · ${fmtTimeRange(state.start, sel.end ?? state.start, lang)}` : ''}
             </p>
             <div className="flex items-center justify-between gap-3">
               <button
@@ -167,7 +171,7 @@ export function BookingDialog({ open, state, dispatch, onClose, onOpenAdmin }: P
                 disabled={stepIndex <= 0}
                 className="inline-flex h-11 items-center gap-1.5 rounded-full px-4 text-sm text-bark-700 transition-colors hover:bg-stone-100 disabled:invisible"
               >
-                <ArrowLeft size={16} aria-hidden="true" /> ย้อนกลับ
+                <ArrowLeft size={16} aria-hidden="true" /> {t('booking.back')}
               </button>
               <button
                 type="button"
@@ -188,12 +192,13 @@ export function BookingDialog({ open, state, dispatch, onClose, onOpenAdmin }: P
 }
 
 function Stepper({ index, onJump }: { index: number; onJump: (i: number) => void }) {
+  const { t } = useLang()
   return (
     <div className="border-b border-stone-200 px-5 py-3 sm:px-7">
       <p className="mb-2 text-xs text-bark-500 sm:hidden">
-        ขั้นตอน {index + 1} จาก {STEPS.length} · {STEPS[index].label}
+        {t('booking.stepOf', { i: index + 1, n: STEPS.length, label: t(STEPS[index].label) })}
       </p>
-      <ol className="flex items-center gap-2" aria-label="ขั้นตอนการจอง">
+      <ol className="flex items-center gap-2" aria-label={t('booking.stepsAria')}>
         {STEPS.map((s, i) => {
           const complete = i < index
           const current = i === index
@@ -203,7 +208,7 @@ function Stepper({ index, onJump }: { index: number; onJump: (i: number) => void
                 type="button"
                 disabled={!complete}
                 onClick={() => onJump(i)}
-                aria-label={`ขั้นตอนที่ ${i + 1} ${s.label}${complete ? ' (แก้ไข)' : ''}`}
+                aria-label={t(complete ? 'booking.stepAriaEdit' : 'booking.stepAria', { i: i + 1, label: t(s.label) })}
                 className="flex items-center gap-2 disabled:cursor-default"
               >
                 <span
@@ -214,7 +219,7 @@ function Stepper({ index, onJump }: { index: number; onJump: (i: number) => void
                 >
                   {complete ? <Check size={13} strokeWidth={3} aria-hidden="true" /> : i + 1}
                 </span>
-                <span className={cn('hidden text-sm sm:inline', current ? 'font-medium text-bark-900' : 'text-bark-500')}>{s.label}</span>
+                <span className={cn('hidden text-sm sm:inline', current ? 'font-medium text-bark-900' : 'text-bark-500')}>{t(s.label)}</span>
               </button>
               {i < STEPS.length - 1 && <span aria-hidden="true" className={cn('h-px flex-1 transition-colors', complete ? 'bg-olive-500' : 'bg-stone-200')} />}
             </li>
@@ -226,25 +231,26 @@ function Stepper({ index, onJump }: { index: number; onJump: (i: number) => void
 }
 
 function Summary({ state }: { state: BookingState }) {
+  const { t, l, lang } = useLang()
   const { service, treatment, promo, price, end } = describeSelection(state)
   const empty = <span className="text-bark-300">—</span>
   return (
     <dl className="mt-4 space-y-3.5 text-sm">
       <div>
-        <dt className="text-xs text-bark-400">บริการ</dt>
-        <dd className="font-medium text-bark-900">{treatment?.name ?? empty}</dd>
-        {service && <dd className="text-bark-600">{service.durationMin} นาที</dd>}
+        <dt className="text-xs text-bark-400">{t('booking.service')}</dt>
+        <dd className="font-medium text-bark-900">{treatment ? l(treatment.name) : empty}</dd>
+        {service && <dd className="text-bark-600">{t('common.minutes', { n: service.durationMin })}</dd>}
       </div>
       <div>
-        <dt className="text-xs text-bark-400">วันที่</dt>
-        <dd className="font-medium text-bark-900">{state.date ? fmtDateLong(state.date) : empty}</dd>
+        <dt className="text-xs text-bark-400">{t('booking.date')}</dt>
+        <dd className="font-medium text-bark-900">{state.date ? fmtDateLong(state.date, lang) : empty}</dd>
       </div>
       <div>
-        <dt className="text-xs text-bark-400">เวลา</dt>
-        <dd className="font-medium text-bark-900">{state.start && end ? `${state.start}–${end} น.` : empty}</dd>
+        <dt className="text-xs text-bark-400">{t('booking.time')}</dt>
+        <dd className="font-medium text-bark-900">{state.start && end ? fmtTimeRange(state.start, end, lang) : empty}</dd>
       </div>
       <div className="border-t border-stone-200 pt-3.5">
-        <dt className="text-xs text-bark-400">ราคา{promo ? ` · ${promo.title}` : ''}</dt>
+        <dt className="text-xs text-bark-400">{promo ? t('booking.priceWithPromo', { promo: l(promo.title) }) : t('booking.price')}</dt>
         <dd className="font-serifth text-2xl text-olive-800">{service ? fmtTHB(price) : empty}</dd>
       </div>
     </dl>
